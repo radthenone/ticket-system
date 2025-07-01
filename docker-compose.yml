@@ -27,7 +27,7 @@ services:
         condition: service_healthy
         restart: true
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
       interval: 30s
       timeout: 20s
       retries: 3
@@ -69,7 +69,7 @@ services:
     environment:
       - NODE_ENV=development
     healthcheck:
-      test: ["CMD", "curl", "--fail", "-G", "http://localhost:3000/ping"]
+      test: ["CMD", "curl", "--fail", "-G", "http://localhost:3000/ping/"]
       interval: 30s
       timeout: 10s
       retries: 30

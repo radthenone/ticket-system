@@ -8,7 +8,6 @@ dependencies = [
     "django==4.2.23",
     "django-cors-headers>=4.7.0",
     "djangorestframework>=3.16.0",
-    "djangorestframework-simplejwt>=5.5.0",
     "psycopg[binary]>=3.2.9",
 ]
 
@@ -58,6 +57,9 @@ indent-width = 4
 
 # Assume Python 3.12.9
 target-version = "py312"
+
+[tool.ruff.per-file-ignores]
+"*/settings/*.py" = ["F401", "F403", "F405"]
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`) codes by default.

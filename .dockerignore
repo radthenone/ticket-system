@@ -94,3 +94,4 @@ LICENSE
 **/*.spec.ts
 **/*.map
 frontend/node_modules
+bruno
