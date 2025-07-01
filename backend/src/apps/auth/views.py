@@ -1,6 +1,4 @@
-import email
 import logging
-import re
 
 from django.conf import settings
 from django.contrib.auth import authenticate
@@ -24,14 +22,14 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"])
     def create_superuser(self, request):
-        email = request.data.get("email") or getattr(
-            settings, "DJANGO_SUPERUSER_EMAIL", "admin@admin.com"
+        email = request.data.get(
+            "email", getattr(settings, "DJANGO_SUPERUSER_EMAIL", "admin@admin.com")
         )
-        username = request.data.get("username") or getattr(
-            settings, "DJANGO_SUPERUSER_USERNAME", "admin"
+        username = request.data.get(
+            "username", getattr(settings, "DJANGO_SUPERUSER_USERNAME", "admin")
         )
-        password = request.data.get("password") or getattr(
-            settings, "DJANGO_SUPERUSER_PASSWORD", "admin"
+        password = request.data.get(
+            "password", getattr(settings, "DJANGO_SUPERUSER_PASSWORD", "admin")
         )
 
         if User.objects.filter(username=username, is_superuser=True).exists():

@@ -21,12 +21,14 @@ from django.contrib import admin
 from django.urls import include, path
 
 from apps.auth.urls import router as auth_router
+from apps.tickets.urls import router as tickets_router
 from core.views import health_check
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("health/", health_check),
     path("api/auth/", include(auth_router.urls)),
+    path("api/tickets/", include(tickets_router.urls)),
 ]
 
 if settings.DEBUG:
