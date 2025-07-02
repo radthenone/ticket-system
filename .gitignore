@@ -1,3 +1,5 @@
 .vscode
 db.sqlite3
 bruno
+.github
+.pytest_cache
