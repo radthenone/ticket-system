@@ -36,17 +36,21 @@ class AuthViewSet(viewsets.ViewSet):
             user = User.objects.get(username=username)
             logger.info("Superuser %s already exists", user.username)
             message = f"Superuser {user.username} already exists"
-            status_code = status.HTTP_200_OK
-        else:
-            user = User.objects.create_superuser(
-                username=username,
-                email=email,
-                password=password,
-                is_active=True,
+            return Response(
+                {
+                    "errors": [message],
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
-            logger.info("Superuser %s created successfully", user.username)
-            message = f"Superuser {user.username} created successfully"
-            status_code = status.HTTP_201_CREATED
+
+        user = User.objects.create_superuser(
+            username=username,
+            email=email,
+            password=password,
+            is_active=True,
+        )
+        logger.info("Superuser %s created successfully", user.username)
+        message = f"Superuser {user.username} created successfully"
 
         token, created = Token.objects.get_or_create(user=user)
         if created:
@@ -56,14 +60,8 @@ class AuthViewSet(viewsets.ViewSet):
         return Response(
             {
                 "message": message,
-                "token": token.key,
-                "user": {
-                    "id": user.id,
-                    "username": user.username,
-                    "email": user.email,
-                },
             },
-            status=status_code,
+            status=status.HTTP_201_CREATED,
         )
 
     @action(detail=False, methods=["post"])
@@ -94,7 +92,7 @@ class AuthViewSet(viewsets.ViewSet):
             )
         logger.warning("Login failed for username %s", username)
         return Response(
-            {"error": "Invalid username or password"},
+            {"errors": ["Invalid username or password"]},
             status=status.HTTP_401_UNAUTHORIZED,
         )
 
