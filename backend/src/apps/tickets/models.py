@@ -13,7 +13,7 @@ from utils import TimestampedModel
 class Ticket(TimestampedModel):
     """Model representing a support ticket in the system."""
 
-    _id = models.UUIDField(
+    id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False, db_column="id"
     )
 
@@ -27,7 +27,7 @@ class Ticket(TimestampedModel):
     )
 
     def __str__(self):
-        return f"Ticket {self._id} - {self.title}"
+        return f"Ticket {self.id} - {self.title}"
 
     class Meta:
         db_table = "tickets"
