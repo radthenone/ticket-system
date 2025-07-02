@@ -1,0 +1,34 @@
+<div class="ticket-form-container">
+  <h2>{{ editMode ? 'Edit' : 'New' }}</h2>
+  <div *ngIf="submitted">Loading...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+  <form [formGroup]="ticketForm" (ngSubmit)="submit()" *ngIf="!submitted">
+    <div class="form-group">
+      <label for="title">Title:</label>
+      <input type="text" id="title" formControlName="title" required>
+      <div *ngIf="getFieldError('title')" class="error-message">
+        {{ getFieldError('title') }}
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="description">Description:</label>
+      <textarea id="description" formControlName="description" rows="5" required></textarea>
+      <div *ngIf="getFieldError('description')" class="error-message">
+        {{ getFieldError('description') }}
+      </div>
+    </div>
+    <div class="form-group" *ngIf="editMode">
+      <label for="status">Status:</label>
+      <select id="status" formControlName="status" required>
+        <option *ngFor="let status of ticketStatuses" [value]="status">{{ status }}</option>
+      </select>
+      <div *ngIf="getFieldError('status')" class="error-message">
+        {{ getFieldError('status') }}
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" [disabled]="ticketForm.invalid || submitted">{{ editMode ? 'Save changes' : 'Create ticket' }}</button>
+    </div>
+  </form>
+  <button (click)="backToList()">Back to list</button>
+</div>

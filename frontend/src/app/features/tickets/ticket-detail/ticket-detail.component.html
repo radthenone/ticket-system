@@ -1,0 +1,10 @@
+<div *ngIf="loading" class="spinner">Loading...</div>
+<div *ngIf="error" class="error">{{ error }}</div>
+<div *ngIf="ticket">
+  <h2>{{ ticket.title }}</h2>
+  <p>{{ ticket.description }}</p>
+  <p>Created: {{ ticket.created_at | date:'dd/MM/yyyy HH:mm' }}</p>
+  <p>Status: {{ ticket.status }}</p>
+  <button (click)="goToEdit()">Edit</button>
+  <button (click)="backToList()">Back to list</button>
+</div>

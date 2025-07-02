@@ -1,0 +1,35 @@
+<form [formGroup]="superuserForm" (ngSubmit)="onSubmit()">
+  <div class="form-group">
+    <label for="username">Username</label>
+    <input type="text" id="username" formControlName="username" autocomplete="username"/>
+    <div *ngIf="submitted && getFieldError('username')" class="text-danger">
+      {{ getFieldError('username') }}
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input type="email" id="email" formControlName="email" autocomplete="email"/>
+    <div *ngIf="submitted && getFieldError('email')" class="text-danger">
+      {{ getFieldError('email') }}
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="password">Password</label>
+    <input type="password" id="password" formControlName="password" autocomplete="new-password"/>
+    <div *ngIf="submitted && getFieldError('password')" class="text-danger">
+      {{ getFieldError('password') }}
+    </div>
+  </div>
+
+  <div class="form-group">
+    <button type="submit" class="btn btn-primary btn-block">Utwórz Superużytkownika</button>
+  </div>
+</form>
+
+<div *ngIf="otherErrors">
+  <div *ngFor="let error of otherErrors">
+    {{ error }}
+  </div>
+</div>

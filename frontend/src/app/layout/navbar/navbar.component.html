@@ -1,1 +1,7 @@
-<p>navbar works!</p>
+<nav class="navbar">
+  <button *ngIf="isLoggedIn && !isTicketsPage" (click)="goToTickets()">Tickets</button>
+  <button *ngIf="!isLoggedIn" (click)="goToLogin()">Login</button>
+  <button *ngIf="isLoggedIn" (click)="logout()">Logout</button>
+  <button *ngIf="!isLoggedIn" (click)="goToCreateSuperuser()">Create Superuser</button>
+  <div *ngIf="success || error">{{ success || error }}</div>
+</nav>
