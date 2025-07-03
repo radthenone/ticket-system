@@ -4,6 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { TicketService } from '@core/services/ticket.service';
 import { Ticket } from '@core/interfaces/ticket.interface';
 import { ErrorService } from '@core/services/error.service';
+import { TicketStatus } from '@core/enums';
 import { first, Subscription } from 'rxjs';
 
 @Component({
@@ -98,6 +99,12 @@ export class TicketListComponent implements OnInit, OnDestroy {
 
   deleteTicket(ticket: Ticket): void {
     if (!ticket.id) {
+      return;
+    }
+
+    // Check if ticket is closed - prevent deletion
+    if (ticket.status === TicketStatus.CLOSED) {
+      this.errorService.addGeneralError("You can't delete closed tickets");
       return;
     }
 

@@ -49,7 +49,7 @@ export class TicketDetailComponent implements OnInit {
   }
 
   goToEdit() {
-    if (this.ticket) {
+    if (this.ticket && this.ticket.id) {
       this.router.navigate(['/tickets', this.ticket.id, 'edit']);
     }
   }

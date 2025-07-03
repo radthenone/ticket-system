@@ -1,5 +1,10 @@
 <div class="ticket-form-container">
   <h2>{{ editMode ? 'Edit' : 'New' }}</h2>
+
+  <div *ngIf="isTicketClosed" class="alert alert-warning">
+    This ticket is closed and cannot be modified.
+  </div>
+
   <form [formGroup]="ticketForm" (ngSubmit)="onSubmit()">
     <div *ngIf="getGeneralErrors()">
       <div *ngFor="let error of getGeneralErrors()" class="alert alert-danger">{{ error }}</div>
@@ -36,13 +41,13 @@
     <div class="form-group" *ngIf="editMode">
       <label for="status">Status:</label>
       <select id="status" formControlName="status">
-        <option *ngFor="let status of ticketStatuses" [value]="status">{{ status }}</option>
+        <option *ngFor="let status of availableStatuses" [value]="status">{{ status }}</option>
       </select>
       <div *ngIf="getFieldErrors('status')">
         <div *ngFor="let error of getFieldErrors('status')" class="field-error">{{ error }}</div>
       </div>
     </div>
-    <div class="form-actions">
+    <div class="form-actions" *ngIf="!isTicketClosed">
       <div *ngIf="!editMode">
         <button type="submit">Create ticket</button>
       </div>
