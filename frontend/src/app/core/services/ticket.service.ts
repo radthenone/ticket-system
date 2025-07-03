@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environments/environment';
-import { Observable, BehaviorSubject, Subject } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { Ticket, TicketCreateRequest, TicketUpdateRequest } from '@core/interfaces/ticket.interface';
 
 @Injectable({
@@ -16,6 +16,10 @@ export class TicketService {
 
   notifyTicketChanged(ticket: Ticket | null): void {
     this.ticketChangedSubject.next(ticket);
+  }
+
+  resetNotifyTicketChanged(): void {
+    this.ticketChangedSubject.next(null);
   }
 
   getTickets(): Observable<Ticket[]> {

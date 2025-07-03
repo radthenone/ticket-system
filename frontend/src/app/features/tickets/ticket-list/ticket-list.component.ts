@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { TicketService } from '@core/services/ticket.service';
 import { Ticket } from '@core/interfaces/ticket.interface';
 import { ErrorService } from '@core/services/error.service';
-import { Subject, takeUntil } from 'rxjs';
+import { first, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-ticket-list',
@@ -13,11 +13,11 @@ import { Subject, takeUntil } from 'rxjs';
   templateUrl: './ticket-list.component.html',
   styleUrl: './ticket-list.component.css',
 })
-export class TicketListComponent implements OnInit {
+export class TicketListComponent implements OnInit, OnDestroy {
   tickets: Ticket[] = [];
   isLoading = false;
   hasLoaded = false;
-  private destroy$ = new Subject<void>();
+  subscription: Subscription | null = null;
   ticketStatusChangedMessage: string | null = null;
 
   constructor(
@@ -29,16 +29,21 @@ export class TicketListComponent implements OnInit {
   ngOnInit(): void {
     this.errorService.clearAllErrors();
     this.loadTickets();
-
-    // @ Change ticket
-    this.ticketService.ticketChanged$.pipe(takeUntil(this.destroy$)).subscribe((ticket) => {
+    // Listen for ticket status changes
+    this.subscription = this.ticketService.ticketChanged$.pipe(first()).subscribe((ticket) => {
+      console.log('Ticket status change detected:', ticket);
       if (ticket && ticket.status) {
         this.ticketStatusChangedMessage = `Ticket "${ticket.title}" status changed to ${ticket.status}`;
         setTimeout(() => {
           this.ticketStatusChangedMessage = null;
+          this.ticketService.resetNotifyTicketChanged();
         }, 10000); // Clear message after 10 seconds
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.subscription?.unsubscribe();
   }
 
   // ERROR HANDLING METHODS

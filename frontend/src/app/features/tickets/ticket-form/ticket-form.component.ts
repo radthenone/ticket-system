@@ -22,6 +22,7 @@ export class TicketFormComponent implements OnInit {
   ticketId: string | null = null;
   submitted = false;
   ticketStatuses = Object.values(TicketStatus);
+  private originalStatus: TicketStatus | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -66,6 +67,7 @@ export class TicketFormComponent implements OnInit {
           }
           console.log('Form value after patch/set:', this.ticketForm.value);
           this.ticketForm.markAsPristine();
+          this.originalStatus = ticket?.status || TicketStatus.OPEN;
         },
         error: () => {
           this.errorService.addGeneralError("Can't load ticket data");
@@ -94,7 +96,7 @@ export class TicketFormComponent implements OnInit {
 
   // END OF ERROR HANDLING METHODS
 
-  onSubmit(partial: boolean = false): void {
+  onSubmit(): void {
     this.submitted = true;
     this.errorService.clearAllErrors();
     this.errorService.getClientErrors(this.ticketForm);
@@ -108,8 +110,10 @@ export class TicketFormComponent implements OnInit {
     const ticketData = this.ticketForm.value;
 
     let action: Observable<Ticket>;
+    const prevStatus = this.originalStatus;
+    const newStatus = ticketData.status;
     if (this.editMode && this.ticketId) {
-      if (partial) {
+      if (this.ticketForm.dirty) {
         action = this.ticketService.partialUpdateTicket(this.ticketId, ticketData);
       } else {
         action = this.ticketService.updateTicket(this.ticketId, ticketData);
@@ -119,9 +123,9 @@ export class TicketFormComponent implements OnInit {
     }
 
     action.subscribe({
-      next: () => {
-        if (this.editMode && this.ticketId) {
-          this.ticketService.notifyTicketChanged({ ...ticketData, id: this.ticketId });
+      next: (updatedTicket) => {
+        if (this.editMode && prevStatus !== undefined && prevStatus !== null && prevStatus !== newStatus) {
+          this.ticketService.notifyTicketChanged(updatedTicket);
         }
         this.router.navigate(['/tickets']);
       },

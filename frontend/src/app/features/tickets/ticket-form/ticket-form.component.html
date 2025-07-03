@@ -1,6 +1,6 @@
 <div class="ticket-form-container">
   <h2>{{ editMode ? 'Edit' : 'New' }}</h2>
-  <form [formGroup]="ticketForm" (ngSubmit)="onSubmit()" *ngIf="!submitted">
+  <form [formGroup]="ticketForm" (ngSubmit)="onSubmit()">
     <div *ngIf="getGeneralErrors()">
       <div *ngFor="let error of getGeneralErrors()" class="alert alert-danger">{{ error }}</div>
     </div>
@@ -48,9 +48,6 @@
       </div>
       <div *ngIf="editMode">
         <button type="button" (click)="onSubmit()">Save changes</button>
-        <button type="button" (click)="onSubmit(true)">Save partial</button>
-        <!-- <button type="submit" [disabled]="ticketForm.invalid || submitted">Save changes</button>
-        <button type="button" (click)="onSubmit(true)" [disabled]="ticketForm.invalid || submitted">Save partial</button> -->
       </div>
     </div>
   </form>

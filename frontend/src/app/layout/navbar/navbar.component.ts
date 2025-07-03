@@ -14,9 +14,10 @@ import { CommonModule } from '@angular/common';
 export class NavbarComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   isLoggedIn: boolean = false;
-  success: string | null = null;
-  error: string | null = null;
+  adminMessage: string | null =
+    "Superuser admin with username 'admin' and password 'admin' already exists you can login with this credentials";
   isLoadingSuperuser: boolean = false;
+  private created = false;
 
   constructor(
     private readonly authService: AuthService,
@@ -59,18 +60,18 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   createSuperuser(): void {
     this.isLoadingSuperuser = true;
-    this.authService.createSuperuser().subscribe({
-      next: () => {
-        this.isLoadingSuperuser = false;
-        this.success =
-          "Superuser admin with username 'admin' and password 'admin' was created you can login with this credentials";
-      },
-      error: (err) => {
-        this.isLoadingSuperuser = false;
-        this.error =
-          "Superuser admin with username 'admin' and password 'admin' already exists you can login with this credentials";
-        console.log(this.error);
-      },
-    });
+    if (!this.created) {
+      this.created = true;
+      this.authService.createSuperuser().subscribe({
+        next: () => {
+          this.isLoadingSuperuser = false;
+          this.adminMessage =
+            "Superuser admin with username 'admin' and password 'admin' was created you can login with this credentials";
+        },
+        error: () => {
+          this.isLoadingSuperuser = false;
+        },
+      });
+    }
   }
 }
