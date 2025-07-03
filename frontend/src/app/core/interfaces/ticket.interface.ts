@@ -1,8 +1,8 @@
 import { TicketStatus } from '@core/enums';
 
 export interface Ticket {
-  id?: number;
-  user?: number;
+  id?: string;
+  user?: string;
   title: string;
   description: string;
   status: TicketStatus;

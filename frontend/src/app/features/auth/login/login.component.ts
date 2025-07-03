@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '@core/services/auth.service';
-import { ErrorService } from '@core/services/error.service';
+import { ErrorService } from '@app/core/services/error.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -24,19 +24,31 @@ export class LoginComponent {
     private router: Router
   ) {
     this.loginForm = this.fb.group({
-      username: ['', [Validators.required]], // Dodano walidator
-      password: ['', [Validators.required]], // Dodano walidator
+      username: ['', [Validators.required]],
+      password: ['', [Validators.required]],
       auto: [false],
     });
   }
 
-  getFieldError(field: string) {
-    return this.errorService.getFieldError(field);
+  // ERROR HANDLING METHODS
+
+  isFieldInvalid(field: string): boolean {
+    return this.errorService.isFieldInvalid(field, this.submitted);
   }
 
-  get otherErrors() {
-    return this.errorService.getFormErrors(this.loginForm);
+  isFieldValid(field: string): boolean {
+    return this.errorService.isFieldValid(field, this.submitted);
   }
+
+  getFieldErrors(field: string): string[] | null {
+    return this.errorService.getFieldErrors(field);
+  }
+
+  getGeneralErrors(): string[] {
+    return this.errorService.getGeneralErrors();
+  }
+
+  // END OF ERROR HANDLING METHODS
 
   get isLoginAuto() {
     return this.loginForm.value.auto;
@@ -44,14 +56,15 @@ export class LoginComponent {
 
   onSubmit(): void {
     this.submitted = true;
-    this.error = null;
+    this.errorService.clearAllErrors();
+    this.errorService.getClientErrors(this.loginForm);
 
     if (!this.loginForm.value.auto) {
       this.loginForm.get('username')?.markAsTouched();
       this.loginForm.get('password')?.markAsTouched();
 
       if (this.loginForm.invalid) {
-        this.error = 'Proszę wypełnić wszystkie wymagane pola';
+        this.errorService.addGeneralError('Invalid form');
         return;
       }
     }
@@ -60,10 +73,9 @@ export class LoginComponent {
       next: () => {
         this.router.navigate(['/tickets']);
       },
-      error: (err) => {
-        this.errorService.handleServerErrors(this.loginForm, err);
-      }
+      error: (error) => {
+        this.errorService.getServerErrors(error, this.loginForm);
+      },
     });
   }
 }
-

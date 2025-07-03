@@ -66,7 +66,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LANGUAGE_CODE = "pl-pl"
+LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "Europe/Warsaw"
 

@@ -1,4 +1,7 @@
 <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+  <div *ngIf="getGeneralErrors()">
+    <div *ngFor="let error of getGeneralErrors()" class="alert alert-danger">{{ error }}</div>
+  </div>
   <div>
     <label>
       <input type="checkbox" formControlName="auto" />
@@ -7,18 +10,30 @@
   </div>
   <div *ngIf="!isLoginAuto">
     <label>Login:</label>
-    <input formControlName="username" autocomplete="username" />
-    <div *ngIf="getFieldError('username')">{{ getFieldError('username')}}</div>
+    <input
+      type="text"
+      id="username"
+      formControlName="username"
+      autocomplete="username"
+      [class.is-invalid]="isFieldInvalid('username')"
+      [class.is-valid]="isFieldValid('username')"
+    />
+    <div *ngIf="getFieldErrors('username')">
+      <div *ngFor="let error of getFieldErrors('username')" class="field-error">{{ error }}</div>
+    </div>
     <label>Password:</label>
-    <input type="password" formControlName="password" autocomplete="password" />
-    <div *ngIf="getFieldError('password')">{{getFieldError('password')}}</div>
+    <input
+      type="text"
+      id="password"
+      formControlName="password"
+      autocomplete="password"
+      [class.is-invalid]="isFieldInvalid('password')"
+      [class.is-valid]="isFieldValid('password')"
+    />
+    <div *ngIf="getFieldErrors('password')">
+      <div *ngFor="let error of getFieldErrors('password')" class="field-error">{{ error }}</div>
+    </div>
   </div>
-  <div *ngIf="error" class="error">{{ error }}</div>
   <button type="submit" [disabled]="(!isLoginAuto && loginForm.invalid)">Login</button>
   <div *ngIf="submitted" class="spinner">Logging in...</div>
 </form>
-<div *ngIf="otherErrors">
-  <div *ngFor="let error of otherErrors">
-    {{ error }}
-  </div>
-</div>

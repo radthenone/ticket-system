@@ -1,7 +1,9 @@
 import logging
 
 from rest_framework import mixins, permissions, viewsets
+from rest_framework.exceptions import ValidationError
 
+from apps.tickets.enums import TicketStatus
 from apps.tickets.models import Ticket
 from apps.tickets.serializers import (
     TicketCreateSerializer,
@@ -39,3 +41,8 @@ class TicketViewSet(
             return TicketUpdateSerializer
         else:
             return TicketDetailSerializer
+
+    def perform_destroy(self, instance):
+        if instance.status == TicketStatus.CLOSED:
+            raise ValidationError(detail="You can't delete closed ticket", code=400)
+        instance.delete()

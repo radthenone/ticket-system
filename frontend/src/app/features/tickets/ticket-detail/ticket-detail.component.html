@@ -8,3 +8,6 @@
   <button (click)="goToEdit()">Edit</button>
   <button (click)="backToList()">Back to list</button>
 </div>
+<div *ngIf="getGeneralErrors()">
+  <div *ngFor="let error of getGeneralErrors()" class="alert alert-danger">{{ error }}</div>
+</div>

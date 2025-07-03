@@ -1,42 +1,212 @@
 import { Injectable } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { FieldError, DjangoError } from '@core/interfaces';
-
-
 @Injectable({
   providedIn: 'root',
 })
 export class ErrorService {
-  private fieldErrors: { [field: string]: FieldError | null } = {};
-  isFormErrorGlobalCreated: boolean = false;
-  isFormErrorsCreated: boolean = false;
-  serverErrorKeys = ['serverNonFieldErrors', 'serverFieldErrors'];
+  private currentForm: FormGroup | null = null;
+  private serverErrors: Record<string, string[]> = {};
+  private clientErrors: Record<string, string[]> = {};
+  private generalError: string[] = [];
+  private inputErrors: Record<string, string[]> = {};
+
   constructor() {}
 
-  private getClientMessage(errorType: string, errorValue?: any): { message: string } {
-    /**
-     * Maps server-side error codes to client-friendly messages.
-     */
+  // @ CSS INVALID FIELDS
+  isFieldInvalid(fieldName: string, ...extraFlags: boolean[]): boolean {
+    if (!this.currentForm) return false;
+
+    const c = this.currentForm.get(fieldName);
+    if (!c) return false;
+    const extra = extraFlags.some((f) => f);
+
+    return c.invalid && (c.touched || extra);
+  }
+
+  isFieldValid(fieldName: string, ...extraFlags: boolean[]): boolean {
+    if (!this.currentForm) return false;
+
+    const c = this.currentForm.get(fieldName);
+    if (!c) return false;
+
+    const extra = extraFlags.some((f) => f);
+
+    return c.valid && (c.touched || extra);
+  }
+
+  // @ CLEAR METHODS
+  /**
+   * Clear all errors in the form
+   * Clears both server and client errors, as well as general errors.
+   */
+  clearAllErrors(): void {
+    this.serverErrors = {};
+    this.clientErrors = {};
+    this.generalError = [];
+  }
+
+  consoleAllErrors(): void {
+    console.log('Server errors:', this.serverErrors);
+    console.log('Client errors:', this.clientErrors);
+    console.log('General errors:', this.generalError);
+  }
+
+  // @ TEMPLATE METHODS
+  /**
+   * Get all errors for a field (server + client) as string[]
+   * First server errors, then client errors
+   */
+  getFieldErrors(fieldName: string): string[] {
+    const errors: string[] = [];
+
+    // First server errors
+    if (this.serverErrors[fieldName]) {
+      errors.push(...this.serverErrors[fieldName]);
+    }
+
+    // Then client errors
+    if (this.clientErrors[fieldName]) {
+      errors.push(...this.clientErrors[fieldName]);
+    }
+
+    return errors;
+  }
+
+  /**
+   * Get general errors as string[] (may be empty)
+   */
+  getGeneralErrors(): string[] {
+    return this.generalError;
+  }
+
+  addGeneralError(errorMessage: string): void {
+    if (!this.generalError.includes(errorMessage)) {
+      this.generalError.push(errorMessage);
+    }
+  }
+
+  // @ SERVER ERRORS
+  getServerErrors(error: HttpErrorResponse, form?: FormGroup): void {
+    this.serverErrors = {};
+    this.generalError = [];
+
+    if (error?.error) {
+      const data = error.error;
+
+      // 1. Errors like: {"field": ["error"], ...}
+      Object.keys(data).forEach((key) => {
+        if (Array.isArray(data[key])) {
+          this.serverErrors[key] = data[key];
+
+          if (form && form.get(key)) {
+            form.get(key)?.setErrors({ server: data[key].join(' ') });
+          }
+
+          // add field if field not in form
+          if (!form || !form.get(key)) {
+            Object.keys(data[key]).forEach((nextKey) => {
+              if (!this.generalError.includes(data[key][nextKey])) {
+                this.generalError.push(data[key][nextKey]);
+              }
+            });
+            // this.generalError.push(...data[key]);
+          }
+        } else if (typeof data[key] === 'string') {
+          if (form && form.get(key)) {
+            form.get(key)?.setErrors({ server: data[key] });
+          } else {
+            if (!this.generalError.includes(data[key])) {
+              this.generalError.push(data[key]);
+            }
+          }
+        }
+      });
+
+      // 2. handle errors for specific fields:  {"non_field_errors": ["error"], ...}
+      const globalErrorKeys = ['non_field_errors', 'detail', 'error'];
+      globalErrorKeys.forEach((key) => {
+        if (data[key]) {
+          if (Array.isArray(data[key])) {
+            Object.keys(data[key]).forEach((nextKey) => {
+              if (!this.generalError.includes(data[key][nextKey])) {
+                this.generalError.push(data[key][nextKey]);
+              }
+            });
+            // this.generalError.push(...data[key]);
+          } else if (typeof data[key] === 'string') {
+            if (!this.generalError.includes(data[key])) {
+              this.generalError.push(data[key]);
+            }
+            // this.generalError.push(data[key]);
+          }
+        }
+      });
+      // Nostandards error handling ->>
+
+      // 3. Nostandards: {"message": "..."}
+      if (typeof data.message === 'string') {
+        if (!this.generalError.includes(data.message)) {
+          this.generalError.push(data.message);
+        }
+      }
+    } else if (error?.status === 0) {
+      if (!this.generalError.includes('Server connect error')) {
+        this.generalError.push('Server connect error');
+      }
+    } else {
+      if (!this.generalError.includes('Invalid error')) {
+        this.generalError.push('Invalid error');
+      }
+    }
+
+    // Console all errors
+    this.consoleAllErrors();
+  }
+
+  getServerErrorsForField(field: string): { message: string }[] {
+    if (!this.serverErrors[field]) return [];
+    return this.serverErrors[field].map((msg) => ({ message: msg }));
+  }
+
+  clearServerErrors(): void {
+    this.serverErrors = {};
+    this.generalError = [];
+  }
+
+  getGeneralError(): string[] {
+    return this.generalError;
+  }
+
+  clearGeneralError(): void {
+    this.generalError = [];
+  }
+
+  // @ CLIENT ERRORS
+  private getClientMessages(
+    errorType: any,
+    errorValue: any
+  ): {
+    message: string;
+  } {
     switch (errorType) {
       case 'required':
         return { message: 'This field is required.' };
       case 'email':
         return { message: 'Invalid email format.' };
       case 'minlength':
-      case 'minLength': {
+      case 'minLength':
         return {
           message: `Minimum length is ${errorValue?.requiredLength || 8}.`,
         };
-      }
+      case 'maxlength':
       case 'maxLength':
         return {
-          message: `Maximum length is ${errorValue?.requiredLength || '20'}.`,
+          message: `Maximum length is ${errorValue?.requiredLength || 20}.`,
         };
       case 'pattern':
         return { message: 'Pattern mismatch.' };
       case 'passwordMismatch':
-        return { message: 'Passwords do not match.' };
       case 'passwordsDontMatch':
         return { message: 'Passwords do not match.' };
       case 'upperCase':
@@ -48,371 +218,160 @@ export class ErrorService {
       case 'specialChar':
         return { message: 'At least one special character is required.' };
       default:
-        // Logger not available, skipping logging
         return { message: `Validation error: ${errorType}` };
     }
   }
 
-  getAllNonFieldErrors(form: FormGroup): FieldError[] | null {
-    /**
-     * Returns all non-field errors from the form.
-     * Non-field errors are typically used for validation messages that are not tied to a specific field.
-     */
-    if (!form) {
-      return null;
-    }
-    const formErrors = form.errors;
-    if (formErrors) {
-      const serverNonFieldErrors = formErrors['serverNonFieldErrors'] as FieldError[];
-      if (serverNonFieldErrors && Array.isArray(serverNonFieldErrors) && serverNonFieldErrors.length > 0) {
-        return serverNonFieldErrors;
-      }
-    }
-    return null;
-  }
+  getClientErrors(form: FormGroup, field?: string): void {
+    this.currentForm = form;
+    if (field) {
+      const control = form.get(field);
+      if (control && control.errors) {
+        this.clientErrors[field] = [];
 
-  getAllFormErrors(form: FormGroup, formErrorName: string): FieldError | null {
-    /**
-     * Returns a specific form error based on the provided error name.
-     * This is useful for displaying specific error messages related to the form as a whole.
-     */
-    if (!form || !formErrorName) {
-      return null;
-    }
-
-    const formErrors = form.errors;
-    if (!formErrors) {
-      return null;
-    }
-    const errorValue = formErrors[formErrorName];
-
-    if (Object.hasOwn(formErrors, formErrorName)) {
-      if (errorValue) {
-        return {
-          value: errorValue,
-          message: this.getClientMessage(formErrorName, errorValue).message,
-          errorType: formErrorName,
-        };
-      }
-    }
-    return null;
-  }
-
-  getAllErrorsForField(form: FormGroup, fieldName: string): FieldError[] | null {
-    /**
-     * Returns all errors for a specific field in the form.
-     * This is useful for displaying validation messages related to a specific input field.
-     */
-    if (!form || !fieldName) {
-      // Logger not available, skipping logging
-      return null;
-    }
-
-    const control = form.get(fieldName);
-    if (!control) {
-      // Logger not available, skipping logging
-      return null;
-    }
-
-    const errors = control.errors;
-
-    if (!errors) {
-      return null;
-    }
-
-    const clientErrors: FieldError[] = [];
-    Object.keys(errors).forEach((errorKey) => {
-      if (errorKey !== 'serverFieldErrors' && errorKey !== 'serverNonFieldErrors') {
-        const errorValue = errors[errorKey];
-        const clientMessage = this.getClientMessage(errorKey, errorValue);
-        clientErrors.push({
-          value: true,
-          message: clientMessage.message,
-          errorType: errorKey,
+        Object.entries(control.errors).forEach(([errorType, errorValue]) => {
+          const clientMessage = this.getClientMessages(errorType, errorValue);
+          this.clientErrors[field].push(clientMessage.message);
         });
       }
-    });
+    } else {
+      Object.keys(form.controls).forEach((fieldName) => {
+        const control = form.get(fieldName);
+        if (control && control.errors) {
+          this.clientErrors[fieldName] = [];
 
-    if (clientErrors.length > 0) {
-      // Logger not available, skipping logging
-      return clientErrors;
-    }
-
-    const serverFieldErrors = errors['serverFieldErrors'];
-    if (serverFieldErrors && Array.isArray(serverFieldErrors) && serverFieldErrors.length > 0) {
-      // Logger not available, skipping logging
-      return serverFieldErrors as FieldError[];
-    }
-
-    // Logger not available, skipping logging
-    return null;
-  }
-
-  setDjangoErrors(error: HttpErrorResponse): DjangoError | null {
-    /**
-     * Converts the error response from the server to the DjangoError object.
-     * Supports various formats of answers from DRF.
-     */
-    if (!error || !error.error) {
-      // Logger not available, skipping logging
-      return null;
-    }
-    if (typeof error.error === 'string') {
-      return { non_field_errors: [error.error] };
-    }
-    if (
-      typeof error.error === 'object' &&
-      error.error !== null &&
-      'detail' in error.error &&
-      typeof error.error.detail === 'string'
-    ) {
-      return { non_field_errors: [error.error.detail] };
-    }
-    if (
-      typeof error.error === 'object' &&
-      error.error !== null &&
-      'errors' in error.error &&
-      Array.isArray(error.error.errors)
-    ) {
-      return { non_field_errors: error.error.errors };
-    }
-    if (typeof error.error === 'object' && error.error !== null) {
-      return error.error as DjangoError;
-    }
-    // Logger not available, skipping logging
-    return null;
-  }
-
-  getServerNonFieldErrors(form: FormGroup, error: DjangoError): void {
-    /**
-     * Sets non-field errors from the server response to the form.
-     * Non-field errors are typically used for validation messages that are not tied to a specific field.
-     */
-    if (!error || !error.non_field_errors || error.non_field_errors.length === 0) {
-      return;
-    }
-
-    const nonFieldErrorsMessages: string[] = error.non_field_errors;
-
-    const fieldErrors: FieldError[] = nonFieldErrorsMessages.map((msg: string) => ({
-      value: true,
-      message: msg,
-      errorType: 'serverNonFieldError',
-    }));
-
-    form.setErrors({ ...form.errors, serverNonFieldErrors: fieldErrors });
-    form.markAsTouched();
-  }
-  getServerFieldErrors(form: FormGroup, error: DjangoError): void {
-    /**
-     * Sets field-specific errors from the server response to the form.
-     * This is useful for displaying validation messages related to specific input fields.
-     */
-    if (!error) {
-      return;
-    }
-
-    Object.keys(error).forEach((field) => {
-      if (field === 'non_field_errors') {
-        return;
-      }
-
-      const control = form.get(field);
-      if (control) {
-        const messages = error[field];
-        if (messages && messages.length > 0) {
-          const fieldErrors: FieldError[] = messages.map((msg: string) => ({
-            value: true,
-            message: msg,
-            errorType: 'serverFieldError',
-          }));
-          control.setErrors({ ...control.errors, serverFieldErrors: fieldErrors }, { emitEvent: false });
-          control.markAsTouched();
+          Object.entries(control.errors).forEach(([errorType, errorValue]) => {
+            const clientMessage = this.getClientMessages(errorType, errorValue);
+            this.clientErrors[fieldName].push(clientMessage.message);
+          });
         }
-      } else {
-        // Logger not available, skipping logging
-      }
-    });
-  }
-
-  handleError(error: HttpErrorResponse, fieldName?: string): string | null {
-    /**
-     *Processes http error.
-     *If `Fieldname` is given, he returns the first mistake for this particular field.
-     *If `Fieldname" is not given, the first error encountered 'non_field_errors' returns.
-     *If there is no `Non_field_errors`, the first mistake for any field returns.
-     *Otherwise he returns Null.
-     */
-
-    if (!error) {
-      return null;
-    }
-
-    const djangoError = this.setDjangoErrors(error);
-
-    if (!djangoError) {
-      // Logger not available, skipping logging
-      return null;
-    }
-
-    if (fieldName) {
-      const specificFieldErrors = djangoError[fieldName];
-      if (
-        Array.isArray(specificFieldErrors) &&
-        specificFieldErrors.length > 0 &&
-        typeof specificFieldErrors[0] === 'string'
-      ) {
-        return specificFieldErrors[0];
-      }
-      return null;
-    }
-
-    if (djangoError.non_field_errors && djangoError.non_field_errors.length > 0) {
-      return djangoError.non_field_errors[0];
-    }
-
-    const fieldErrorKeys = Object.keys(djangoError).filter((key) => key !== 'non_field_errors');
-    if (fieldErrorKeys.length > 0) {
-      for (const fieldKey of fieldErrorKeys) {
-        const fieldErrors = djangoError[fieldKey];
-        if (Array.isArray(fieldErrors) && fieldErrors.length > 0 && typeof fieldErrors[0] === 'string') {
-          return fieldErrors[0];
-        }
-      }
-    }
-
-    // Logger not available, skipping logging
-    return null;
-  }
-
-  handleServerErrors(form: FormGroup, error: HttpErrorResponse): void {
-    /**
-     * Handles server errors by setting them in the form.
-     * This is useful for displaying validation messages related to server-side validation.
-     */
-    // this.logger.logHttpError(error, 'FormError');
-
-    const djangoError = this.setDjangoErrors(error);
-
-    if (!djangoError) {
-      // Logger not available, skipping logging
-      return;
-    }
-
-    this.getServerNonFieldErrors(form, djangoError);
-    this.getServerFieldErrors(form, djangoError);
-
-    this.logFormState(form);
-  }
-
-  setFieldError(fieldName: string, error: string | HttpErrorResponse | null): void {
-    /**
-     * Sets a field error for a specific field in the form.
-     * If the error is an instance of HttpErrorResponse, it processes the error and sets the appropriate message.
-     * If the error is null, it clears the field error.
-     */
-    if (!fieldName) return;
-
-    if (typeof error === 'string') {
-      this.fieldErrors[fieldName] = {
-        value: true,
-        message: error,
-        errorType: 'clientFieldError',
-      };
-      return;
-    }
-
-    if (error instanceof HttpErrorResponse) {
-      const errorMessage = this.handleError(error, fieldName);
-      if (errorMessage) {
-        this.fieldErrors[fieldName] = {
-          value: true,
-          message: errorMessage,
-          errorType: 'serverFieldError',
-        };
-      } else {
-        this.fieldErrors[fieldName] = null;
-      }
-      return;
-    }
-
-    if (error === null) {
-      this.fieldErrors[fieldName] = null;
+      });
     }
   }
 
-  getFieldError(fieldName: string): string | null {
-    /**
-     * Returns the field error for a specific field.
-     * If no error is set for the field, it returns null.
-     */
-    return this.fieldErrors[fieldName]?.message || null;
+  getClientErrorsForField(field: string): { message: string }[] {
+    if (!this.clientErrors[field]) return [];
+    return this.clientErrors[field].map((msg) => ({ message: msg }));
   }
 
-  clearFieldError(fieldName: string): void {
-    /**
-     * Clears the field error for a specific field.
-     * This is useful when the error is resolved and no longer needs to be displayed.
-     */
-    if (fieldName) {
-      this.fieldErrors[fieldName] = null;
+  clearClientErrors(): void {
+    this.clientErrors = {};
+  }
+
+  /* // @ HOW TO USE INPUT ERRORS
+  How to use:
+  username = '';
+  this.errorService.validateInput('username', this.username, {
+    required: true,
+    minLength: 3,
+    maxLength: 20
+  });
+
+  <input
+    name="username"
+    [value]="username"
+    (input)="onUsernameChange($event.target.value)"
+    placeholder="Add username"
+  />
+
+  <div *ngIf="errorService.getInputErrors('username')">
+    <div *ngFor="let error of errorService.getInputErrors('username')" class="error">
+      {{ error }}
+    </div>
+  </div>
+  */
+  validateInput(inputName: string, value: string, rules: any = {}): void {
+    const errors: string[] = [];
+
+    // Required
+    if (rules.required && (!value || value.trim() === '')) {
+      errors.push(this.getClientMessages('required', null).message);
+    }
+
+    // Email
+    if (rules.email && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      errors.push(this.getClientMessages('email', null).message);
+    }
+
+    // Min Length
+    if (rules.minLength && value.length < rules.minLength) {
+      errors.push(this.getClientMessages('minLength', { requiredLength: rules.minLength }).message);
+    }
+
+    // Max Length
+    if (rules.maxLength && value.length > rules.maxLength) {
+      errors.push(this.getClientMessages('maxLength', { requiredLength: rules.maxLength }).message);
+    }
+
+    // Pattern
+    if (rules.pattern && value && !rules.pattern.test(value)) {
+      errors.push(this.getClientMessages('pattern', null).message);
+    }
+
+    if (errors.length > 0) {
+      this.inputErrors[inputName] = errors;
+    } else {
+      delete this.inputErrors[inputName];
     }
   }
 
-  //1
-  getError(error: HttpErrorResponse, fieldName?: string): string | null {
-    return this.handleError(error, fieldName);
+  getInputErrors(inputName: string): string[] | null {
+    const errors = this.inputErrors[inputName];
+    return errors && errors.length > 0 ? errors : null;
   }
 
-  //2
-  getFieldErrors(form: FormGroup,fieldName: string): string[] {
-    const errors = this.getAllErrorsForField(form, fieldName);
-    return errors ? errors.map(error => error.message) : [];
+  clearInputErrors(inputName: string): void {
+    delete this.inputErrors[inputName];
   }
 
-  //3
-  getFormErrors(form: FormGroup): string[] {
-    const errors = this.getAllNonFieldErrors(form);
-    return errors ? errors.map(error => error.message) : [];
+  clearAllInputErrors(): void {
+    this.inputErrors = {};
   }
 
-  private logFormState(form: FormGroup): void {
-    /**
-     * Loguje stan formularza dla celów debugowania.
-     */
-    console.log('Form error status:', {
-      valid: form.valid,
-      invalid: form.invalid,
-      touched: form.touched,
-      dirty: form.dirty,
-      errors: form.errors,
-      controls: Object.keys(form.controls).map((key) => {
-        const control = form.get(key);
-        return {
-          field: key,
-          value: control?.value,
-          errors: control?.errors,
-          touched: control?.touched,
-          valid: control?.valid,
-          status: control?.status,
-        };
-      }),
-    });
+  /* //@ HOW TO USE SERVICE ERRORS
+  onSubmit() {
+  // Clean all errors
+  this.errorService.clearFormErrors();
+
+  // Client errors to all
+  this.errorService.getClientErrors(this.form);
+
+  if (this.form.invalid) {
+    this.form.markAllAsTouched();
+    return;
   }
 
-  getValidationErrorMessage(form: FormGroup, fieldName: string): string | null {
-    const control = form.get(fieldName);
-    if (control && control.errors) {
-      for (const errorKey in control.errors) {
-        if (control.hasError(errorKey)) {
-          const errorValue = control.errors[errorKey];
-          const clientMessage = this.getClientMessage(errorKey, errorValue);
-          if (clientMessage && clientMessage.message) {
-            return clientMessage.message;
-          }
-        }
-      }
-    }
-    return null;
+  this.apiService.submit(this.form.value).subscribe({
+    error: (err) => this.errorService.getServerErrors(err, this.form)
+  });
   }
+
+  // to specyfic client field error
+  onFieldChange(fieldName: string) {
+    this.errorService.getClientErrors(this.form, fieldName);
+  }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <!-- Ogólne błędy -->
+  <div *ngIf="errorService.getGeneralErrors()">
+    <div *ngFor="let error of errorService.getGeneralErrors()" class="general-error">
+      {{ error }}
+    </div>
+  </div>
+
+  <!-- username -->
+  <div>
+    <label>Username:</label>
+    <input formControlName="username" />
+    <div *ngIf="errorService.getFieldErrors('username')">
+      <div *ngFor="let error of errorService.getFieldErrors('username')" class="field-error">
+        {{ error }}
+      </div>
+    </div>
+  </div>
+
+  <button type="submit">Submit</button>
+</form>
+
+  */
 }

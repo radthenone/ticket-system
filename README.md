@@ -2,8 +2,8 @@
 
 ## logs
 
-- docker logs -ft web
-- docker logs -ft front
+- docker attach web
+- docker attach front
 
 ## exec
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '@environments/environment';
-import { Observable, BehaviorSubject, pipe, tap } from 'rxjs';
+import { Observable, BehaviorSubject, tap } from 'rxjs';
 import { Credentials, User } from '@app/core/interfaces/auth.interface';
 
 @Injectable({
@@ -23,15 +23,13 @@ export class AuthService {
 
   private apiUrl = `${environment.backendUrl}/auth`;
 
-  createSuperuser(
-    data?: { username: string; password: string; email: string }
-  ): Observable<{ token: string; user: User }> {
-    return this.http.post<{ token: string; user: User }>(
-      `${this.apiUrl}/create_superuser/`,
-      data ?? {}
-    );
+  createSuperuser(data?: {
+    username: string;
+    password: string;
+    email: string;
+  }): Observable<{ token: string; user: User }> {
+    return this.http.post<{ token: string; user: User }>(`${this.apiUrl}/create_superuser/`, data ?? {});
   }
-
 
   login(credentials: Credentials): Observable<{ token: string; user: User }> {
     return this.http.post<{ token: string; user: User }>(`${this.apiUrl}/login/`, credentials).pipe(

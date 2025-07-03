@@ -13,6 +13,5 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       },
     });
   }
-  console.log('AuthInterceptor: Request made with headers:', req.headers);
   return next(req);
 };

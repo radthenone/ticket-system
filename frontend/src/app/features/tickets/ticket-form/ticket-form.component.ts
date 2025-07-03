@@ -1,11 +1,13 @@
+import { ErrorService } from '@core/services/error.service';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TicketService } from '@core/services/ticket.service';
-import { ErrorService } from '@core/services/error.service';
 import { TicketStatus } from '@core/enums';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
+import { Observable } from 'rxjs/internal/Observable';
+import { Ticket } from '@app/core/interfaces';
 
 @Component({
   selector: 'app-ticket-form',
@@ -17,8 +19,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 export class TicketFormComponent implements OnInit {
   ticketForm: FormGroup;
   editMode = false;
-  ticketId: number | null = null;
-  error: string | null = null;
+  ticketId: string | null = null;
   submitted = false;
   ticketStatuses = Object.values(TicketStatus);
 
@@ -32,69 +33,101 @@ export class TicketFormComponent implements OnInit {
     this.ticketForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3)]],
       description: ['', [Validators.required, Validators.minLength(10)]],
-      status: [TicketStatus.OPEN, Validators.required]
+      status: [TicketStatus.OPEN, Validators.required],
     });
   }
 
   ngOnInit(): void {
-    this.route.data.subscribe(data => {
-      this.editMode = data['mode'] === 'edit';
-    });
-
+    this.editMode = this.route.snapshot.data['mode'] === 'edit';
     if (this.editMode) {
-      this.route.params.subscribe(params => {
-        if (params['id']) {
-          this.ticketId = +params['id'];
-          this.loadTicketData();
-        }
-      });
+      const id = this.route.snapshot.params['id'];
+      if (id) {
+        this.ticketId = id;
+        this.loadTicketData();
+      }
     }
   }
 
-  private loadTicketData(): void {
+  private loadTicketData(useSetValue: boolean = false): void {
+    console.log('loadTicketData called, ticketId:', this.ticketId);
     if (this.ticketId) {
       this.ticketService.getTicket(this.ticketId).subscribe({
         next: (ticket) => {
-          this.ticketForm.patchValue(ticket);
+          console.log('Loaded ticket from backend:', ticket);
+          const formData = {
+            title: ticket?.title || '',
+            description: ticket?.description || '',
+            status: ticket?.status || TicketStatus.OPEN,
+          };
+          if (useSetValue) {
+            this.ticketForm.setValue(formData);
+          } else {
+            this.ticketForm.patchValue(formData);
+          }
+          console.log('Form value after patch/set:', this.ticketForm.value);
+          this.ticketForm.markAsPristine();
         },
-        error: (err) => {
-          this.error = "Can't load ticket data";
-          this.errorService.handleServerErrors(this.ticketForm, err);
-        }
+        error: () => {
+          this.errorService.addGeneralError("Can't load ticket data");
+        },
       });
     }
   }
 
-  getFieldError(field: string) {
-    return this.errorService.getFieldError(field);
+  // ERROR HANDLING METHODS
+
+  isFieldInvalid(field: string): boolean {
+    return this.errorService.isFieldInvalid(field, this.submitted);
   }
 
-  get otherErrors() {
-    return this.errorService.getFormErrors(this.ticketForm);
+  isFieldValid(field: string): boolean {
+    return this.errorService.isFieldValid(field, this.submitted);
   }
 
-  submit(): void {
+  getFieldErrors(field: string): string[] | null {
+    return this.errorService.getFieldErrors(field);
+  }
+
+  getGeneralErrors(): string[] {
+    return this.errorService.getGeneralErrors();
+  }
+
+  // END OF ERROR HANDLING METHODS
+
+  onSubmit(partial: boolean = false): void {
+    this.submitted = true;
+    this.errorService.clearAllErrors();
+    this.errorService.getClientErrors(this.ticketForm);
+
     if (this.ticketForm.invalid) {
-      this.error = 'Please fill all required fields correctly';
+      this.ticketForm.markAllAsTouched();
+      this.errorService.addGeneralError('Please fill all required fields correctly');
       return;
     }
 
-    this.submitted = true;
     const ticketData = this.ticketForm.value;
 
-    const action = this.editMode && this.ticketId
-      ? this.ticketService.updateTicket(this.ticketId, ticketData)
-      : this.ticketService.createTicket(ticketData);
+    let action: Observable<Ticket>;
+    if (this.editMode && this.ticketId) {
+      if (partial) {
+        action = this.ticketService.partialUpdateTicket(this.ticketId, ticketData);
+      } else {
+        action = this.ticketService.updateTicket(this.ticketId, ticketData);
+      }
+    } else {
+      action = this.ticketService.createTicket(ticketData);
+    }
 
     action.subscribe({
       next: () => {
-        this.submitted = false;
+        if (this.editMode && this.ticketId) {
+          this.ticketService.notifyTicketChanged({ ...ticketData, id: this.ticketId });
+        }
         this.router.navigate(['/tickets']);
       },
-      error: (err) => {
-        this.submitted = false;
-        this.errorService.handleServerErrors(this.ticketForm, err);
-      }
+      error: (error) => {
+        this.errorService.getServerErrors(error, this.ticketForm);
+      },
     });
   }
 

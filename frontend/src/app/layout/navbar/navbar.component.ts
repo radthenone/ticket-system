@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import { AuthService } from '@app/core/services/auth.service';
 import { Subject, takeUntil } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { ErrorService } from '@app/core/services/error.service';
 
 @Component({
   selector: 'app-navbar',
@@ -21,8 +20,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly authService: AuthService,
-    private readonly router: Router,
-    private readonly errorService: ErrorService,
+    private readonly router: Router
   ) {}
 
   ngOnInit(): void {
@@ -64,12 +62,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.authService.createSuperuser().subscribe({
       next: () => {
         this.isLoadingSuperuser = false;
-        this.success = "Superuser admin with username 'admin' and password 'admin' was created you can login with this credentials"
+        this.success =
+          "Superuser admin with username 'admin' and password 'admin' was created you can login with this credentials";
       },
       error: (err) => {
         this.isLoadingSuperuser = false;
-        // this.error = this.errorService.handleError(err);
-        this.error = "Superuser admin with username 'admin' and password 'admin' already exists you can login with this credentials"
+        this.error =
+          "Superuser admin with username 'admin' and password 'admin' already exists you can login with this credentials";
         console.log(this.error);
       },
     });

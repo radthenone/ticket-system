@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
-import { ErrorService } from '@core/services/error.service';
+import { ErrorService } from '@app/core/services/error.service';
 
 @Component({
   selector: 'app-create-superuser',
@@ -30,22 +30,34 @@ export class CreateSuperuserComponent {
     });
   }
 
-  getFieldError(field: string): string | null {
-    const validationError = this.errorService.getValidationErrorMessage(this.superuserForm, field);
-    if (validationError) {
-      this.errorService.setFieldError(field, validationError);
-    }
-    return this.errorService.getFieldError(field);
+  // ERROR HANDLING METHODS
+
+  isFieldInvalid(field: string): boolean {
+    return this.errorService.isFieldInvalid(field, this.submitted);
   }
 
-  get otherErrors() {
-    return this.errorService.getFormErrors(this.superuserForm);
+  isFieldValid(field: string): boolean {
+    return this.errorService.isFieldValid(field, this.submitted);
   }
+
+  getFieldErrors(field: string): string[] | null {
+    return this.errorService.getFieldErrors(field);
+  }
+
+  getGeneralErrors(): string[] {
+    return this.errorService.getGeneralErrors();
+  }
+
+  // END OF ERROR HANDLING METHODS
 
   onSubmit(): void {
     this.submitted = true;
 
+    this.errorService.clearAllErrors();
+    this.errorService.getClientErrors(this.superuserForm);
+
     if (this.superuserForm.invalid) {
+      this.superuserForm.markAllAsTouched();
       return;
     }
 
@@ -56,11 +68,11 @@ export class CreateSuperuserComponent {
         this.isLoading = false;
         this.router.navigate(['/login']);
       },
-      error: (err) => {
+      error: (error) => {
         this.isLoading = false;
         this.submitted = false;
-        this.errorService.handleServerErrors(this.superuserForm, err);
-      }
+        this.errorService.getServerErrors(error, this.superuserForm);
+      },
     });
   }
 }

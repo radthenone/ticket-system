@@ -24,6 +24,14 @@ export class TicketDetailComponent implements OnInit {
     private errorService: ErrorService
   ) {}
 
+  // ERROR HANDLING METHODS
+
+  getGeneralErrors(): string[] {
+    return this.errorService.getGeneralErrors();
+  }
+
+  // END OF ERROR HANDLING METHODS
+
   ngOnInit() {
     const id = this.route.snapshot.params['id'];
     this.loading = true;
@@ -32,8 +40,9 @@ export class TicketDetailComponent implements OnInit {
         this.ticket = ticket;
         this.loading = false;
       },
-      error: (err) => {
-        this.error = this.errorService.handleError(err);
+      error: (error) => {
+        this.errorService.addGeneralError("Can't load tickets");
+        this.errorService.getServerErrors(error);
         this.loading = false;
       },
     });

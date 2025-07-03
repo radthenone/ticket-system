@@ -1,34 +1,58 @@
 <div class="ticket-form-container">
   <h2>{{ editMode ? 'Edit' : 'New' }}</h2>
-  <div *ngIf="submitted">Loading...</div>
-  <div *ngIf="error" class="error">{{ error }}</div>
-  <form [formGroup]="ticketForm" (ngSubmit)="submit()" *ngIf="!submitted">
+  <form [formGroup]="ticketForm" (ngSubmit)="onSubmit()" *ngIf="!submitted">
+    <div *ngIf="getGeneralErrors()">
+      <div *ngFor="let error of getGeneralErrors()" class="alert alert-danger">{{ error }}</div>
+    </div>
     <div class="form-group">
       <label for="title">Title:</label>
-      <input type="text" id="title" formControlName="title" required>
-      <div *ngIf="getFieldError('title')" class="error-message">
-        {{ getFieldError('title') }}
+      <input
+        type="text"
+        id="title"
+        formControlName="title"
+        autocomplete="title"
+        [class.is-invalid]="isFieldInvalid('title')"
+        [class.is-valid]="isFieldValid('title')"
+      />
+      <div *ngIf="getFieldErrors('title')">
+        <div *ngFor="let error of getFieldErrors('title')" class="field-error">{{ error }}</div>
       </div>
     </div>
     <div class="form-group">
       <label for="description">Description:</label>
-      <textarea id="description" formControlName="description" rows="5" required></textarea>
-      <div *ngIf="getFieldError('description')" class="error-message">
-        {{ getFieldError('description') }}
+      <textarea
+        id="description"
+        formControlName="description"
+        autocomplete="description"
+        rows="5"
+        [class.is-invalid]="isFieldInvalid('description')"
+        [class.is-valid]="isFieldValid('description')"
+      >
+      </textarea>
+      <div *ngIf="getFieldErrors('description')">
+        <div *ngFor="let error of getFieldErrors('description')" class="field-error">{{ error }}</div>
       </div>
     </div>
     <div class="form-group" *ngIf="editMode">
       <label for="status">Status:</label>
-      <select id="status" formControlName="status" required>
+      <select id="status" formControlName="status">
         <option *ngFor="let status of ticketStatuses" [value]="status">{{ status }}</option>
       </select>
-      <div *ngIf="getFieldError('status')" class="error-message">
-        {{ getFieldError('status') }}
+      <div *ngIf="getFieldErrors('status')">
+        <div *ngFor="let error of getFieldErrors('status')" class="field-error">{{ error }}</div>
       </div>
     </div>
     <div class="form-actions">
-      <button type="submit" [disabled]="ticketForm.invalid || submitted">{{ editMode ? 'Save changes' : 'Create ticket' }}</button>
+      <div *ngIf="!editMode">
+        <button type="submit">Create ticket</button>
+      </div>
+      <div *ngIf="editMode">
+        <button type="button" (click)="onSubmit()">Save changes</button>
+        <button type="button" (click)="onSubmit(true)">Save partial</button>
+        <!-- <button type="submit" [disabled]="ticketForm.invalid || submitted">Save changes</button>
+        <button type="button" (click)="onSubmit(true)" [disabled]="ticketForm.invalid || submitted">Save partial</button> -->
+      </div>
     </div>
   </form>
-  <button (click)="backToList()">Back to list</button>
 </div>
+<button (click)="backToList()">Back to list</button>
