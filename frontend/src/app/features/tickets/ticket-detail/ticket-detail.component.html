@@ -1,13 +1,30 @@
-<div *ngIf="loading" class="spinner">Loading...</div>
-<div *ngIf="error" class="error">{{ error }}</div>
-<div *ngIf="ticket">
-  <h2>{{ ticket.title }}</h2>
-  <p>{{ ticket.description }}</p>
-  <p>Created: {{ ticket.created_at | date:'dd/MM/yyyy HH:mm' }}</p>
-  <p>Status: {{ ticket.status }}</p>
-  <button (click)="goToEdit()">Edit</button>
-  <button (click)="backToList()">Back to list</button>
-</div>
-<div *ngIf="getGeneralErrors()">
-  <div *ngFor="let error of getGeneralErrors()" class="alert alert-danger">{{ error }}</div>
+<div class="dashboard-panel">
+  <div *ngIf="loading" class="spinner" style="margin: 32px auto; display: block;"></div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <div *ngIf="getGeneralErrors()">
+    <div *ngFor="let error of getGeneralErrors()" class="alert alert-danger">{{ error }}</div>
+  </div>
+  <ng-container *ngIf="ticket && !loading && !error">
+    <h2>Details</h2>
+    <div class="form-group">
+      <label>Title</label>
+      <div class="detail-value">{{ ticket.title }}</div>
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <div class="detail-value">{{ ticket.description }}</div>
+    </div>
+    <div class="form-group">
+      <label>Created</label>
+      <div class="detail-value">{{ ticket.created_at | date:'dd/MM/yyyy HH:mm' }}</div>
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <div class="detail-value">{{ ticket.status }}</div>
+    </div>
+    <div class="button-row">
+      <button (click)="goToEdit()">Edit</button>
+      <button (click)="backToList()">Back to list</button>
+    </div>
+  </ng-container>
 </div>

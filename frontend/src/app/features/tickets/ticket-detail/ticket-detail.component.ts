@@ -33,6 +33,7 @@ export class TicketDetailComponent implements OnInit {
   // END OF ERROR HANDLING METHODS
 
   ngOnInit() {
+    this.errorService.clearAllErrors();
     const id = this.route.snapshot.params['id'];
     this.loading = true;
     this.ticketService.getTicket(id).subscribe({

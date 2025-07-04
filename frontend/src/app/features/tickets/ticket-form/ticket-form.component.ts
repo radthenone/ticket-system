@@ -24,6 +24,7 @@ export class TicketFormComponent implements OnInit {
   ticketStatuses = Object.values(TicketStatus);
   private originalStatus: TicketStatus | null = null;
   availableStatuses: TicketStatus[] = [];
+  loading = false;
 
   constructor(
     private fb: FormBuilder,
@@ -40,6 +41,7 @@ export class TicketFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.errorService.clearAllErrors();
     this.editMode = this.route.snapshot.data['mode'] === 'edit';
     if (this.editMode) {
       const id = this.route.snapshot.params['id'];
@@ -132,6 +134,7 @@ export class TicketFormComponent implements OnInit {
     let action: Observable<Ticket>;
     const prevStatus = this.originalStatus;
     const newStatus = ticketData.status;
+    this.loading = true;
     if (this.editMode && this.ticketId) {
       if (this.ticketForm.dirty) {
         action = this.ticketService.partialUpdateTicket(this.ticketId, ticketData);
@@ -152,9 +155,11 @@ export class TicketFormComponent implements OnInit {
         if (this.editMode && prevStatus !== undefined && prevStatus !== null && prevStatus !== newStatus) {
           this.ticketService.notifyTicketChanged(updatedTicket);
         }
+        this.loading = false;
         this.router.navigate(['/tickets']);
       },
       error: (error) => {
+        this.loading = false;
         this.errorService.getServerErrors(error, this.ticketForm);
       },
     });

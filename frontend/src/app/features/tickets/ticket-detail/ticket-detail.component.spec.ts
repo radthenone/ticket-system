@@ -31,7 +31,8 @@ describe('TicketDetailComponent', () => {
     const errorServiceSpy = jasmine.createSpyObj('ErrorService', [
       'addGeneralError',
       'getGeneralErrors',
-      'getServerErrors'
+      'getServerErrors',
+      'clearAllErrors'
     ]);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     const routeSpy = jasmine.createSpyObj('ActivatedRoute', [], {
@@ -191,12 +192,11 @@ describe('TicketDetailComponent', () => {
       fixture.detectChanges();
 
       const compiled = fixture.nativeElement;
-      expect(compiled.querySelector('h2').textContent).toContain(mockTicket.title);
+      const detailValues = compiled.querySelectorAll('.detail-value');
+      expect(detailValues[0].textContent).toContain(mockTicket.title);
       expect(compiled.textContent).toContain(mockTicket.description);
       expect(compiled.textContent).toContain(mockTicket.status);
     });
-
-
 
     it('should display error messages when present', () => {
       ticketService.getTicket.and.returnValue(of(mockTicket));

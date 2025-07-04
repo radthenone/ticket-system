@@ -1,3 +1,22 @@
 :host {
   display: block;
 }
+
+.footer {
+  width: 100vw;
+  min-height: 48px;
+  background: var(--color-panel);
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  box-shadow: 0 -2px 8px rgba(59,130,246,0.08);
+  padding: 12px 0 10px 0;
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+}

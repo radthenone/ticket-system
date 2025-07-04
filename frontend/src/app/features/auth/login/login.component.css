@@ -1,3 +1,118 @@
 :host {
   display: block;
 }
+
+.login-panel {
+  background: var(--color-panel-alt);
+  border-radius: var(--border-radius);
+  padding: 32px 32px 28px 32px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  max-width: 440px;
+  margin: 48px auto 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+label {
+  margin-bottom: 2px;
+  font-size: 1.04rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--color-panel);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 10px 16px;
+  font-size: 1rem;
+  transition: border var(--transition), box-shadow var(--transition);
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-accent-alt)33;
+}
+
+button[type="submit"] {
+  width: 100%;
+  margin-top: 10px;
+  margin-bottom: 0;
+  align-self: stretch;
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 10px 24px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+button[type="submit"]:hover {
+  background: var(--color-accent-alt);
+}
+
+.auto-login-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.auto-login-row input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--color-accent);
+  border-radius: 6px;
+  margin-right: 6px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(59,130,246,0.10);
+  transition: accent-color 0.18s;
+}
+
+input:disabled, .form-group input:disabled {
+  opacity: 0.5;
+  background: var(--color-panel);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .login-panel {
+    padding: 16px 4px 16px 4px;
+    max-width: 98vw;
+  }
+}
+
+.flex-center-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100vw;
+  gap: 24px;
+  background: var(--color-bg);
+  box-sizing: border-box;
+  padding: 0;
+}

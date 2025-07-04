@@ -1,13 +1,14 @@
 <nav class="navbar">
-  <ng-container *ngIf="isLoggedIn; else loggedOut">
-    <button *ngIf="!isTicketsPage" (click)="goToTickets()">Tickets</button>
-    <button (click)="logout()">Logout</button>
-  </ng-container>
-
   <ng-template #loggedOut>
     <button (click)="goToLogin()">Login</button>
     <button (click)="goToCreateSuperuser()">Create Superuser</button>
   </ng-template>
+  <ng-container *ngIf="isLoggedIn; else loggedOut">
+    <button *ngIf="!isTicketsPage" (click)="goToTickets()">Tickets</button>
+    <div class="user-info">
+      <span class="user-name">{{ username || 'User' }}</span>
+    </div>
+    <button (click)="logout()">Logout</button>
+  </ng-container>
 
-  <div *ngIf="adminMessage">{{ adminMessage }}</div>
 </nav>

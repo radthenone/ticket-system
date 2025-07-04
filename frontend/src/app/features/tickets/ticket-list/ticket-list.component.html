@@ -1,7 +1,12 @@
-<div class="ticket-list">
+<div class="ticket-list-panel">
+  <p *ngIf="ticketStatusChangedMessage">{{ ticketStatusChangedMessage}}</p>
+  <div *ngIf="getGeneralErrors()">
+    <div *ngFor="let error of getGeneralErrors()" class="alert alert-danger">{{ error }}</div>
+  </div>
+  <br>
   <h2>Tickets List</h2>
   <button (click)="createTicket()">Create New Ticket</button>
-  <div *ngIf="isLoading">Loading...</div>
+  <div *ngIf="isLoading" class="spinner" style="margin: 32px auto; display: block;"></div>
   <table *ngIf="hasLoaded && tickets.length > 0">
     <thead>
       <tr>
@@ -19,15 +24,13 @@
         <td>{{ ticket.status }}</td>
         <td>{{ ticket.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
         <td>
-          <button (click)="viewTicketDetails(ticket)">Details</button>
-          <button (click)="editTicket(ticket)">Edit</button>
-          <button (click)="deleteTicket(ticket)">Delete</button>
+          <div class="action-buttons">
+            <button (click)="viewTicketDetails(ticket)">Details</button>
+            <button (click)="editTicket(ticket)">Edit</button>
+            <button (click)="deleteTicket(ticket)">Delete</button>
+          </div>
         </td>
       </tr>
     </tbody>
   </table>
-  <p *ngIf="ticketStatusChangedMessage">{{ ticketStatusChangedMessage}}</p>
-  <div *ngIf="getGeneralErrors()">
-    <div *ngFor="let error of getGeneralErrors()" class="alert alert-danger">{{ error }}</div>
-  </div>
 </div>

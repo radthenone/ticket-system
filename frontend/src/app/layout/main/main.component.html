@@ -1,3 +1,21 @@
-<div class="main-container">
-  <router-outlet></router-outlet>
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <div class="logo">TICKETS</div>
+    <nav>
+      <a *ngIf="isLoggedIn" routerLink="/tickets" routerLinkActive="active" class="nav-link">Tickets</a>
+      <a *ngIf="!isLoggedIn" routerLink="/auth/login" routerLinkActive="active" class="nav-link">User</a>
+      <a href="http://127.0.0.1:8000/admin" target="_blank" class="nav-link">Settings</a>
+    </nav>
+    <div class="sidebar-admin-message-wrapper">
+      <div *ngIf="adminMessage" [ngClass]="created ? 'sidebar-admin-message sidebar-admin-message-success' : 'sidebar-admin-message sidebar-admin-message-error'">
+        {{ adminMessage }}
+      </div>
+    </div>
+  </aside>
+  <main class="main-content">
+    <header class="header">
+      <div class="header-title">Dashboard</div>
+    </header>
+    <router-outlet></router-outlet>
+  </main>
 </div>

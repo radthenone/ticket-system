@@ -1,53 +1,52 @@
-<form [formGroup]="superuserForm" (ngSubmit)="onSubmit()">
-  <div *ngIf="getGeneralErrors()">
-    <div *ngFor="let error of getGeneralErrors()" class="alert alert-danger">{{ error }}</div>
-  </div>
-  <div class="form-group">
-    <label for="username">Username</label>
-    <input
-      type="text"
-      id="username"
-      formControlName="username"
-      autocomplete="username"
-      [class.is-invalid]="isFieldInvalid('username')"
-      [class.is-valid]="isFieldValid('username')"
-    />
-    <div *ngIf="getFieldErrors('username')">
-      <div *ngFor="let error of getFieldErrors('username')" class="field-error">{{ error }}</div>
+<div class="dashboard-panel">
+  <form [formGroup]="superuserForm" (ngSubmit)="onSubmit()">
+    <div *ngIf="getGeneralErrors()">
+      <div *ngFor="let error of getGeneralErrors()" class="alert alert-danger">{{ error }}</div>
     </div>
-  </div>
-
-  <div class="form-group">
-    <label for="email">Email</label>
-    <input
-      type="email"
-      id="email"
-      formControlName="email"
-      autocomplete="email"
-      [class.is-invalid]="isFieldInvalid('email')"
-      [class.is-valid]="isFieldValid('email')"
-    />
-    <div *ngIf="getFieldErrors('email')">
-      <div *ngFor="let error of getFieldErrors('email')" class="field-error">{{ error }}</div>
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input
+        type="text"
+        id="username"
+        formControlName="username"
+        autocomplete="username"
+        [class.is-invalid]="isFieldInvalid('username')"
+        [class.is-valid]="isFieldValid('username')"
+      />
+      <div *ngIf="getFieldErrors('username')">
+        <div *ngFor="let error of getFieldErrors('username')" class="field-error">{{ error }}</div>
+      </div>
     </div>
-  </div>
-
-  <div class="form-group">
-    <label for="password">Password</label>
-    <input
-      type="password"
-      id="password"
-      formControlName="password"
-      autocomplete="password"
-      [class.is-invalid]="isFieldInvalid('password')"
-      [class.is-valid]="isFieldValid('password')"
-    />
-    <div *ngIf="getFieldErrors('password')">
-      <div *ngFor="let error of getFieldErrors('password')" class="field-error">{{ error }}</div>
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input
+        type="email"
+        id="email"
+        formControlName="email"
+        autocomplete="email"
+        [class.is-invalid]="isFieldInvalid('email')"
+        [class.is-valid]="isFieldValid('email')"
+      />
+      <div *ngIf="getFieldErrors('email')">
+        <div *ngFor="let error of getFieldErrors('email')" class="field-error">{{ error }}</div>
+      </div>
     </div>
-  </div>
-
-  <div class="form-group">
-    <button type="submit" class="btn btn-primary btn-block">Create superuser</button>
-  </div>
-</form>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input
+        type="password"
+        id="password"
+        formControlName="password"
+        autocomplete="password"
+        [class.is-invalid]="isFieldInvalid('password')"
+        [class.is-valid]="isFieldValid('password')"
+      />
+      <div *ngIf="getFieldErrors('password')">
+        <div *ngFor="let error of getFieldErrors('password')" class="field-error">{{ error }}</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <button type="submit" class="btn btn-primary btn-block">Create superuser</button>
+    </div>
+  </form>
+</div>

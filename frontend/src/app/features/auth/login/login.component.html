@@ -1,39 +1,31 @@
-<form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-  <div *ngIf="getGeneralErrors()">
-    <div *ngFor="let error of getGeneralErrors()" class="alert alert-danger">{{ error }}</div>
-  </div>
-  <div>
-    <label>
-      <input type="checkbox" formControlName="auto" />
-      Login as superuser (auto)
-    </label>
-  </div>
-  <div *ngIf="!isLoginAuto">
-    <label>Login:</label>
-    <input
-      type="text"
-      id="username"
-      formControlName="username"
-      autocomplete="username"
-      [class.is-invalid]="isFieldInvalid('username')"
-      [class.is-valid]="isFieldValid('username')"
-    />
-    <div *ngIf="getFieldErrors('username')">
-      <div *ngFor="let error of getFieldErrors('username')" class="field-error">{{ error }}</div>
+<div class="dashboard-panel">
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <div class="auto-login-row">
+      <input type="checkbox" id="auto" formControlName="auto" />
+      <label for="auto">Login as superuser (auto)</label>
     </div>
-    <label>Password:</label>
-    <input
-      type="text"
-      id="password"
-      formControlName="password"
-      autocomplete="password"
-      [class.is-invalid]="isFieldInvalid('password')"
-      [class.is-valid]="isFieldValid('password')"
-    />
-    <div *ngIf="getFieldErrors('password')">
-      <div *ngFor="let error of getFieldErrors('password')" class="field-error">{{ error }}</div>
+    <div *ngIf="getGeneralErrors()">
+      <div *ngFor="let error of getGeneralErrors()" class="alert alert-danger">{{ error }}</div>
     </div>
-  </div>
-  <button type="submit" [disabled]="(!isLoginAuto && loginForm.invalid)">Login</button>
-  <div *ngIf="submitted" class="spinner">Logging in...</div>
-</form>
+    <ng-container *ngIf="!loginForm.get('auto')?.value">
+      <div class="form-group">
+        <label for="username">Login</label>
+        <input id="username" formControlName="username" [ngClass]="{'ng-invalid': isFieldInvalid('username'), 'ng-valid': isFieldValid('username'), 'ng-touched': loginForm.get('username')?.touched}" />
+        <div *ngIf="getFieldErrors('username')" class="field-error">
+          <span *ngFor="let error of getFieldErrors('username')">{{ error }}</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input id="password" type="password" formControlName="password" [ngClass]="{'ng-invalid': isFieldInvalid('password'), 'ng-valid': isFieldValid('password'), 'ng-touched': loginForm.get('password')?.touched}" />
+        <div *ngIf="getFieldErrors('password')" class="field-error">
+          <span *ngFor="let error of getFieldErrors('password')">{{ error }}</span>
+        </div>
+      </div>
+    </ng-container>
+    <button type="submit">
+      Log in
+      <span *ngIf="submitted" class="spinner"></span>
+    </button>
+  </form>
+</div>

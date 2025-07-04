@@ -14,8 +14,7 @@ import { CommonModule } from '@angular/common';
 export class NavbarComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   isLoggedIn: boolean = false;
-  adminMessage: string | null =
-    "Superuser admin with username 'admin' and password 'admin' already exists you can login with this credentials";
+  username: string | null = null;
   isLoadingSuperuser: boolean = false;
   private created = false;
 
@@ -27,8 +26,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.authService.user$.pipe(takeUntil(this.destroy$)).subscribe((user) => {
       this.isLoggedIn = !!user;
+      this.username = user ? user.username : null;
     });
-    this.createSuperuser();
   }
 
   ngOnDestroy(): void {
@@ -65,8 +64,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.authService.createSuperuser().subscribe({
         next: () => {
           this.isLoadingSuperuser = false;
-          this.adminMessage =
-            "Superuser admin with username 'admin' and password 'admin' was created you can login with this credentials";
         },
         error: () => {
           this.isLoadingSuperuser = false;
