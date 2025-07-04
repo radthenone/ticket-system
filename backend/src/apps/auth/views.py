@@ -68,7 +68,7 @@ class AuthViewSet(viewsets.ViewSet):
     def login(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
-        is_auto_login = bool(request.data.get("auto", False))
+        is_auto_login = str(request.data.get("auto", "")).strip().lower() == "true"
         if is_auto_login:
             username = getattr(settings, "DJANGO_SUPERUSER_USERNAME", "admin")
             password = getattr(settings, "DJANGO_SUPERUSER_PASSWORD", "admin")

@@ -10,14 +10,25 @@
     <ng-container *ngIf="!loginForm.get('auto')?.value">
       <div class="form-group">
         <label for="username">Login</label>
-        <input id="username" formControlName="username" [ngClass]="{'ng-invalid': isFieldInvalid('username'), 'ng-valid': isFieldValid('username'), 'ng-touched': loginForm.get('username')?.touched}" />
+        <input
+          id="username"
+          autocomplete="username"
+          formControlName="username"
+          [ngClass]="{'ng-invalid': isFieldInvalid('username'), 'ng-valid': isFieldValid('username'), 'ng-touched': loginForm.get('username')?.touched}"
+        />
         <div *ngIf="getFieldErrors('username')" class="field-error">
           <span *ngFor="let error of getFieldErrors('username')">{{ error }}</span>
         </div>
       </div>
       <div class="form-group">
         <label for="password">Password</label>
-        <input id="password" type="password" formControlName="password" [ngClass]="{'ng-invalid': isFieldInvalid('password'), 'ng-valid': isFieldValid('password'), 'ng-touched': loginForm.get('password')?.touched}" />
+        <input
+          id="password"
+          type="password"
+          autocomplete="password"
+          formControlName="password"
+          [ngClass]="{'ng-invalid': isFieldInvalid('password'), 'ng-valid': isFieldValid('password'), 'ng-touched': loginForm.get('password')?.touched}"
+        />
         <div *ngIf="getFieldErrors('password')" class="field-error">
           <span *ngFor="let error of getFieldErrors('password')">{{ error }}</span>
         </div>
